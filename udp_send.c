@@ -1,13 +1,17 @@
 
 
-#include <arpa/inet.h>
 #include <stdlib.h>
-#include <netinet/in.h>
+#include <stdint.h>
+#include <string.h>
 #include <stdio.h>
 #include <sys/types.h>
 #include <sys/socket.h>
+#include <arpa/inet.h>
+#include <netinet/in.h>
 #include <unistd.h>
 #include <math.h>
+
+
 
 #define BUFLEN 512
 #define NPACK 600
@@ -18,41 +22,43 @@
 
 void diep(char *s)
 {
-perror(s);
-exit(1);
+    perror(s);
+    exit(1);
 }
 
-#include <stdint.h>
-#include <string.h>
 
 
 int main(void)
 {
-     struct sockaddr_in si_me, si_other;
-     int s, i, slen=sizeof(si_other);
+    struct sockaddr_in si_me, si_other;
+    int s, i, slen=sizeof(si_other);
      
-     double buf[3],buf_in[3];
+    double buf[3],buf_in[3];
     
-    // Creation du socket. 
+    // Create our socket. 
     if ((s=socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP))==-1)
     diep("socket");
     
-    
+    // define the host (blender)
     memset((char *) &si_other, 0, sizeof(si_other));
     si_other.sin_family = AF_INET;
     si_other.sin_port = htons(BLENDER_PORT);
+    if (inet_aton(BLENDER_IP, &si_other.sin_addr)==0) {
+        fprintf(stderr, "inet_aton() failed\n");
+        exit(1);
+    }
     
+    // the port to bind (where we wait for the answer)
     memset((char *) &si_me, 0, sizeof(si_me));
     si_me.sin_family = AF_INET;
     si_me.sin_port = htons(PORT_BIND);
     si_me.sin_addr.s_addr = htonl(INADDR_ANY);
-    
     if (bind(s, &si_me, sizeof(si_me))==-1)
     diep("bind");
     
 
     
-    // generation des données
+    // generate some data then send/receive
     for (i=0; i<NPACK; i++) 
     {
     
@@ -63,11 +69,11 @@ int main(void)
       printf("Sending packet %d\n", i);
       
         
-    //Envoi avec gestion d'erreur
+    //Send, break on error
       if (sendto(s, buf, sizeof(buf), 0, &si_other, slen)==-1)
                 diep("sendto()");
       
-    //Reception de la réponse
+    //Receive, break on error
       if (recvfrom(s, buf_in, BUFLEN, 0, &si_other, &slen)==-1)
           diep("recvfrom()");
       
