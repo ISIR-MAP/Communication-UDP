@@ -1,6 +1,7 @@
-Realtime bilteral UDP Communication in Blender Game, python and C
-=================================================================
- 
+Realtime bilateral UDP Communication in Blender Game, python and C
+==================================================================
+
+
  Blender Game listens on port 21567  for 3 doubles then replies with 3 doubles upon receipt. 
  
  sender.py (or udp_send.c) sends 3 doubles then wait for an answer. 
