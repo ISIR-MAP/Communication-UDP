@@ -10,8 +10,8 @@
 
 #define IPUNITY     "127.0.0.1"
 #define IPHAPT      "127.0.0.1"
-#define PORTUNITY   8080
-#define PORTHAPT    8081
+#define PORTUNITY   8081
+#define PORTHAPT    8080
 
 #define BUFLEN 24
 
@@ -48,24 +48,20 @@ int main() {
         return -1;
     }
 
-    double bufIn[3] = {0}, bufOut[6] = {2.0};
+    double bufIn[3] = {0.0}, bufOut[2] = {0.0};
 
     while (true) {
-        // GetPosition of haptic interface
-        //bufOut = {};
-
-        if (sendto(sckt, bufOut, sizeof(bufOut), 0, (struct sockaddr *)&addrUnity, sizeof(addrUnity))==-1) {
-            cout << "sendTo of socket failed" << endl;
-            return -1;
-        }
-
         if (recvfrom(sckt, bufIn, BUFLEN, 0, (struct sockaddr *)&addrUnity, &addrLen)==-1) {
             cout << "recvfrom of socket failed" << endl;
             return -1;
         }
         cout << bufIn[0] << ", " << bufIn[1] << ", " << bufIn[2] << endl;
 
-        // ApplyForce to haptic interface
+        if (sendto(sckt, bufOut, sizeof(bufOut), 0, (struct sockaddr *)&addrUnity, sizeof(addrUnity))==-1) {
+            cout << "sendTo of socket failed" << endl;
+            return -1;
+        }
+        bufOut[0] += 0.2; bufOut[1] += 0.02;
     }
 
     return 0;

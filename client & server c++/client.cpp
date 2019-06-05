@@ -10,8 +10,8 @@
 
 #define IPUNITY     "127.0.0.1"
 #define IPHAPT      "127.0.0.1"
-#define PORTUNITY   8081
-#define PORTHAPT    8080
+#define PORTUNITY   8080
+#define PORTHAPT    8081
 
 #define BUFLEN 24
 
@@ -48,20 +48,22 @@ int main() {
         return -1;
     }
 
-    double bufIn[6] = {0}, bufOut[3] = {1.0};
+    double bufIn[2] = {0.0}, bufOut[3] = {0.0};
 
     while (true) {
-        if (recvfrom(sckt, bufIn, BUFLEN, 0, (struct sockaddr *)&addrUnity, &addrLen)==-1) {
-            cout << "recvfrom of socket failed" << endl;
-            return -1;
-        }
-        cout << bufIn[0] << ", " << bufIn[1] << ", " << bufIn[2] << ", ";
-        cout << bufIn[3] << ", " << bufIn[4] << ", " << bufIn[5] << endl;
-
         if (sendto(sckt, bufOut, sizeof(bufOut), 0, (struct sockaddr *)&addrUnity, sizeof(addrUnity))==-1) {
             cout << "sendTo of socket failed" << endl;
             return -1;
         }
+        bufOut[0] += 0.1; bufOut[1] += 0.01; bufOut[2] += 0.001;
+        //cout << bufOut[0] << ", " << bufOut[1] << endl;
+
+        if (recvfrom(sckt, bufIn, BUFLEN, 0, (struct sockaddr *)&addrUnity, &addrLen)==-1) {
+            cout << "recvfrom of socket failed" << endl;
+            return -1;
+        }
+        cout << bufIn[0] << ", " << bufIn[1] << endl;
+        usleep(100000);
     }
 
     return 0;
