@@ -7,7 +7,7 @@ using UnityEditor;
 
 /*	Script computing the forces and gains relating to the coupling of
 	a haptic interface
- * 		- Gets haptic interface information through "SocketAdmittance.cs"
+ * 		- Gets haptic interface information through "SocketImpedance.cs"
  * 			by creating an instance of the class
  * 		- Requires "Handle" GameObject which has no collision
  * 			to behave correctly
@@ -15,7 +15,7 @@ using UnityEditor;
  * 			rigidbody to simulate a realistic behavior
  */
 
-public class CouplingAdmittance : MonoBehaviour {
+public class CouplingImpedance : MonoBehaviour {
 
 	struct Point {
 		public float distance;
@@ -29,7 +29,7 @@ public class CouplingAdmittance : MonoBehaviour {
 		}
 	}
 
-	SocketAdmittance socket;
+	SocketImpedance socket;
 	Rigidbody rb;
 	GameObject proxy;
 	GameObject handle;
@@ -63,7 +63,7 @@ public class CouplingAdmittance : MonoBehaviour {
 
 	// Use this for initialization
 	void Start() {
-		this.socket = ScriptableObject.CreateInstance<SocketAdmittance>();
+		this.socket = ScriptableObject.CreateInstance<SocketImpedance>();
 		this.force = Vector3.zero;	// force vector to be sent to haptic interface
 
 		// Getting proxy Rigidbody and its parameters
@@ -106,7 +106,7 @@ public class CouplingAdmittance : MonoBehaviour {
 
 		// Compute force applied to proxy and haptic interface (spring-dampener equations)
 		this.deltaPos = posHandle-posProxy;
-		this.force = this.socket.GetForce();
+		this.force = this.k*deltaPos - this.b*(velProxy-velHandle);
 
 		// Applying forces to proxy
 		this.rb.AddForce(force);
@@ -115,7 +115,13 @@ public class CouplingAdmittance : MonoBehaviour {
 		grabObjects(posProxy);
 
 		if (enableHapticFeedback) {
-			this.socket.SetPosition(this.rb.position);
+			if (this.handleScript.GetStatus()) {		// Applies a force if handle is colliding with an object
+				this.socket.SetForce(-1*force/2 + guidanceForce);
+			} else {
+				this.socket.SetForce(guidanceForce);
+			}
+		} else {
+			this.socket.SetForce(new Vector3(0f, 0f, 0f));
 		}
 
 		if (objGrabbed && (prevPos-posProxy).magnitude>0.05f) {
@@ -227,10 +233,6 @@ public class CouplingAdmittance : MonoBehaviour {
 
 	public Vector3 GetPosition() {
 		return this.rb.position;
-	}
-
-	public Vector3 GetSpeed() {
-		return this.rb.velocity;
 	}
 
 	public Vector3 GetDeltaPosition() {
